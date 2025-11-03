@@ -2,9 +2,29 @@ using NUnit.Framework;
 
 namespace bank
 {
+    // TEST STUB pentru Currency Converter
+    // Implementare simpla care returneaza un curs fix pentru testare
+    // Permite testarea functionalitatii fara dependenta de API-ul BNR
+    public class CurrencyConverterStub : ICurrencyConverter
+    {
+        private float fixedRate;
+
+        // Constructor care permite setarea unui curs fix pentru teste
+        public CurrencyConverterStub(float eurToRonRate)
+        {
+            fixedRate = eurToRonRate;
+        }
+
+        // Returneaza cursul fix (nu face HTTP request la BNR)
+        public float GetEurToRonRate()
+        {
+            return fixedRate;
+        }
+    }
+
     // Clasa care contine toate testele pentru contul bancar
     [TestFixture]
-    [Description("Teste pentru operatiile contului bancar corporativ")]
+    [Description("Teste pentru operatiile contului bancar")]
     public class AccountTest
     {
         // Variabile pentru conturile sursa si destinatie folosite in teste
@@ -150,7 +170,7 @@ namespace bank
             Assert.Pass("Exceptia pentru transfer prea mare a fost aruncata corect");
         }
 
-        // ---------- TESTE DE ROBUSTETE ----------
+        // ---------- TESTE MAi Plauzibile ----------
         
         // Test 9: Transfer cand destinatia DEJA ARE bani in cont
         [Test, Category("pass")]
@@ -193,6 +213,128 @@ namespace bank
                     "Trebuie sa arunce exceptie pentru transfer invalid");
                 Assert.Pass("Exceptia pentru transfer invalid a fost aruncata corect");
             }
+        }
+
+        // ---------- TESTE CURRENCY CONVERTER cu STUB ----------
+
+        // Test 11: Verifica conversia RON -> EUR cu curs fix (STUB)
+        [Test, Category("pass")]
+        [Description("Testeaza conversie RON la EUR folosind stub cu curs fix 5.0")]
+        public void ConvertRonToEur_WithStub_ShouldCalculateCorrectly()
+        {
+            // Cream un stub cu curs fix: 1 EUR = 5.0 RON
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var account = new Account(1000, stubConverter);
+
+            // Convertim 100 RON la EUR
+            // 100 RON / 5.0 = 20 EUR
+            float result = account.ConvertRonToEur(100);
+
+            Assert.That(result, Is.EqualTo(20.0f).Within(0.01f), "100 RON trebuie sa fie 20 EUR la curs 5.0");
+            Assert.Pass("Conversia RON->EUR cu stub a reusit");
+        }
+
+        // Test 12: Verifica conversia EUR -> RON cu curs fix (STUB)
+        [Test, Category("pass")]
+        [Description("Testeaza conversie EUR la RON folosind stub cu curs fix 5.0")]
+        public void ConvertEurToRon_WithStub_ShouldCalculateCorrectly()
+        {
+            // Cream un stub cu curs fix: 1 EUR = 5.0 RON
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var account = new Account(1000, stubConverter);
+
+            // Convertim 20 EUR la RON
+            // 20 EUR * 5.0 = 100 RON
+            float result = account.ConvertEurToRon(20);
+
+            Assert.That(result, Is.EqualTo(100.0f).Within(0.01f), "20 EUR trebuie sa fie 100 RON la curs 5.0");
+            Assert.Pass("Conversia EUR->RON cu stub a reusit");
+        }
+
+        // Test 13: Transfer international RON -> EUR cu STUB
+        [Test, Category("pass")]
+        [Description("Testeaza transfer international RON->EUR folosind stub")]
+        public void TransferRonToEur_WithStub_ShouldTransferCorrectAmount()
+        {
+            // Cream stub cu curs fix: 1 EUR = 5.0 RON
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            
+            // Cont sursa: 1000 RON
+            var sourceAccount = new Account(1000, stubConverter);
+            // Cont destinatie: 0 EUR
+            var destinationAccount = new Account(0, stubConverter);
+
+            // Transferam 500 RON -> EUR
+            // 500 RON / 5.0 = 100 EUR
+            sourceAccount.TransferRonToEur(destinationAccount, 500);
+
+            // Verificam: sursa a ramas cu 500 RON
+            Assert.That(sourceAccount.Balance, Is.EqualTo(500).Within(0.01f), 
+                "Sursa trebuie sa aiba 500 RON ramas");
+            // Verificam: destinatia a primit 100 EUR
+            Assert.That(destinationAccount.Balance, Is.EqualTo(100).Within(0.01f), 
+                "Destinatia trebuie sa aiba 100 EUR");
+            Assert.Pass("Transferul RON->EUR cu stub a reusit");
+        }
+
+        // Test 14: Transfer international EUR -> RON cu STUB
+        [Test, Category("pass")]
+        [Description("Testeaza transfer international EUR->RON folosind stub")]
+        public void TransferEurToRon_WithStub_ShouldTransferCorrectAmount()
+        {
+            // Cream stub cu curs fix: 1 EUR = 5.0 RON
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            
+            // Cont sursa: 100 EUR
+            var sourceAccount = new Account(100, stubConverter);
+            // Cont destinatie: 0 RON
+            var destinationAccount = new Account(0, stubConverter);
+
+            // Transferam 50 EUR -> RON
+            // 50 EUR * 5.0 = 250 RON
+            sourceAccount.TransferEurToRon(destinationAccount, 50);
+
+            // Verificam: sursa a ramas cu 50 EUR
+            Assert.That(sourceAccount.Balance, Is.EqualTo(50).Within(0.01f), 
+                "Sursa trebuie sa aiba 50 EUR ramas");
+            // Verificam: destinatia a primit 250 RON
+            Assert.That(destinationAccount.Balance, Is.EqualTo(250).Within(0.01f), 
+                "Destinatia trebuie sa aiba 250 RON");
+            Assert.Pass("Transferul EUR->RON cu stub a reusit");
+        }
+
+        // Test 15: Teste cu CURSURI DIFERITE - demonstreaza flexibilitatea STUB-ului
+        [TestCase(4.5f, 450, 100)]   // Curs 4.5: 450 RON = 100 EUR
+        [TestCase(5.0f, 500, 100)]   // Curs 5.0: 500 RON = 100 EUR
+        [TestCase(4.97f, 497, 100)]  // Curs 4.97 (BNR real): 497 RON ≈ 100 EUR
+        [Category("pass")]
+        [Description("Testeaza conversii cu cursuri diferite folosind stub parametrizat")]
+        public void ConvertRonToEur_WithDifferentRates_ShouldCalculateCorrectly(float rate, float ron, float expectedEur)
+        {
+            // Cream stub cu cursul specificat
+            var stubConverter = new CurrencyConverterStub(rate);
+            var account = new Account(1000, stubConverter);
+
+            // Convertim RON la EUR
+            float result = account.ConvertRonToEur(ron);
+
+            // Verificam rezultatul (cu toleranta de 0.1 pentru erori de rotunjire)
+            Assert.That(result, Is.EqualTo(expectedEur).Within(0.1f), 
+                $"{ron} RON trebuie sa fie aproximativ {expectedEur} EUR la curs {rate}");
+            Assert.Pass($"Conversia cu curs {rate} a reusit");
+        }
+
+        // Test 16: Verifica ca nu se poate transfera o suma negativa
+        [Test, Category("pass")]
+        [Description("Testeaza rejectia sumelor negative la conversie")]
+        public void ConvertRonToEur_NegativeAmount_ShouldThrow()
+        {
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var account = new Account(1000, stubConverter);
+
+            Assert.Throws<ArgumentException>(() => account.ConvertRonToEur(-100), 
+                "Trebuie sa arunce ArgumentException pentru suma negativa");
+            Assert.Pass("Exceptia pentru suma negativa a fost aruncata corect");
         }
     }
 } //verificam daca se salveaza
