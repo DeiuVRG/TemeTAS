@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Moq;
 
 namespace bank
 {
@@ -335,6 +336,178 @@ namespace bank
             Assert.Throws<ArgumentException>(() => account.ConvertRonToEur(-100), 
                 "Trebuie sa arunce ArgumentException pentru suma negativa");
             Assert.Pass("Exceptia pentru suma negativa a fost aruncata corect");
+        }
+
+        // ========== TESTE MOCK ==========
+        // Mock Object = un obiect de test care simuleaza comportamentul unei dependente externe
+        // Si permite VERIFICAREA ca metodele au fost apelate corect (spre deosebire de STUB)
+        
+        // Test MOCK 1: Verifica ca se trimite EMAIL pentru depuneri mari (> 50,000)
+        [Test, Category("pass")]
+        [Description("Test MOCK: Verifica ca SendEmail este apelat pentru depuneri mari")]
+        public void Deposit_LargeAmount_ShouldCallSendEmail()
+        {
+            // Arrange (Pregatim mock-ul)
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var mockNotificationService = new Mock<INotificationService>(); // Cream un MOCK
+            var account = new Account(10000, stubConverter, mockNotificationService.Object);
+
+            // Act (Executam actiunea)
+            // Depunem 60,000 RON (peste limita de 50,000)
+            account.Deposit(60000);
+
+            // Assert (Verificam ca metoda SendEmail A FOST APELATA)
+            // Aceasta e diferenta fata de STUB: verificam INTERACTIUNILE, nu doar rezultatele
+            mockNotificationService.Verify(
+                m => m.SendEmail(
+                    "owner@example.com",                    // recipient
+                    "Depunere mare",                        // subject
+                    It.Is<string>(msg => msg.Contains("60000")) // message contine suma
+                ),
+                Times.Once,  // Trebuie apelat EXACT o data
+                "SendEmail trebuie apelat pentru depuneri > 50,000 RON"
+            );
+
+            // Verificam ca LogActivity a fost apelat de asemenea
+            mockNotificationService.Verify(
+                m => m.LogActivity(It.IsAny<string>(), It.Is<string>(s => s.Contains("Deposit"))),
+                Times.Once,
+                "LogActivity trebuie apelat pentru orice depunere"
+            );
+
+            Assert.Pass("Mock a verificat corect apelurile pentru depunere mare");
+        }
+
+        // Test MOCK 2: Verifica ca se trimite SMS pentru retrageri mari (> 5,000)
+        [Test, Category("pass")]
+        [Description("Test MOCK: Verifica ca SendSms este apelat pentru retrageri mari")]
+        public void Withdraw_LargeAmount_ShouldCallSendSms()
+        {
+            // Arrange
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var mockNotificationService = new Mock<INotificationService>();
+            var account = new Account(50000, stubConverter, mockNotificationService.Object);
+
+            // Act
+            // Retragem 7,000 RON (peste limita de 5,000)
+            account.Withdraw(7000);
+
+            // Assert - Verificam ca SendSms a fost apelat
+            mockNotificationService.Verify(
+                m => m.SendSms(
+                    "+40712345678",                         // phoneNumber
+                    It.Is<string>(msg => msg.Contains("7000")) // message contine suma
+                ),
+                Times.Once,  // STRICT: exact o data
+                "SendSms trebuie apelat pentru retrageri > 5,000 RON"
+            );
+
+            // Verificam ca LogActivity a fost apelat de asemenea
+            mockNotificationService.Verify(
+                m => m.LogActivity(It.IsAny<string>(), It.Is<string>(s => s.Contains("Withdraw"))),
+                Times.Once,
+                "LogActivity trebuie apelat pentru orice retragere"
+            );
+
+            Assert.Pass("Mock a verificat corect apelurile pentru retragere mare");
+        }
+
+        // Test MOCK 3: Verifica ca LogActivity este apelat la generarea raportului
+        [Test, Category("pass")]
+        [Description("Test MOCK: Verifica ca LogActivity este apelat la generare raport")]
+        public void GenerateAccountReport_ShouldCallLogActivity()
+        {
+            // Arrange
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var mockNotificationService = new Mock<INotificationService>();
+            var account = new Account(10000, stubConverter, mockNotificationService.Object);
+
+            // Facem cateva tranzactii pentru a avea ceva in raport
+            account.Deposit(5000);
+            account.Withdraw(2000);
+
+            // Resetam mock-ul pentru a nu conta tranzactiile anterioare
+            mockNotificationService.Reset();
+
+            // Act
+            string report = account.GenerateAccountReport();
+
+            // Assert - Verificam ca LogActivity a fost apelat pentru generarea raportului
+            mockNotificationService.Verify(
+                m => m.LogActivity(
+                    It.IsAny<string>(),                     // accountId (orice string)
+                    "Account report generated"              // mesaj exact
+                ),
+                Times.Once,  // Exact o data
+                "LogActivity trebuie apelat cand se genereaza raportul"
+            );
+
+            // Verificam si ca raportul contine informatii relevante
+            Assert.That(report, Does.Contain("Raport Cont"), "Raportul trebuie sa contina titlul");
+            Assert.That(report, Does.Contain("Sold curent"), "Raportul trebuie sa contina soldul");
+
+            Assert.Pass("Mock a verificat corect apelul la generarea raportului");
+        }
+
+        // Test MOCK 4 (BONUS): Verifica ca SendEmail NU este apelat pentru depuneri mici
+        [Test, Category("pass")]
+        [Description("Test MOCK: Verifica ca SendEmail NU este apelat pentru depuneri mici")]
+        public void Deposit_SmallAmount_ShouldNotCallSendEmail()
+        {
+            // Arrange
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var mockNotificationService = new Mock<INotificationService>();
+            var account = new Account(10000, stubConverter, mockNotificationService.Object);
+
+            // Act
+            // Depunem doar 1,000 RON (sub limita de 50,000)
+            account.Deposit(1000);
+
+            // Assert - Verificam ca SendEmail NU a fost apelat NICIODATA
+            mockNotificationService.Verify(
+                m => m.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never,  // NICIODATA
+                "SendEmail NU trebuie apelat pentru depuneri mici"
+            );
+
+            // DAR verificam ca LogActivity a fost totusi apelat (pentru orice depunere)
+            mockNotificationService.Verify(
+                m => m.LogActivity(It.IsAny<string>(), It.Is<string>(s => s.Contains("Deposit"))),
+                Times.Once,
+                "LogActivity trebuie apelat pentru orice depunere"
+            );
+
+            Assert.Pass("Mock a verificat corect ca SendEmail NU a fost apelat pentru depunere mica");
+        }
+
+        // Test MOCK 5 (BONUS): Verifica ordinea apelurilor (STRICT MOCK)
+        [Test, Category("pass")]
+        [Description("Test MOCK: Verifica ordinea stricta a apelurilor")]
+        public void Deposit_ShouldCallMethodsInCorrectOrder()
+        {
+            // Arrange
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var mockNotificationService = new Mock<INotificationService>(MockBehavior.Strict);
+            
+            // Setup STRICT: definim ORDINEA EXACTA a apelurilor asteptate
+            var sequence = new MockSequence();
+            
+            mockNotificationService.InSequence(sequence)
+                .Setup(m => m.LogActivity(It.IsAny<string>(), It.Is<string>(s => s.Contains("Deposit"))));
+            
+            mockNotificationService.InSequence(sequence)
+                .Setup(m => m.SendEmail("owner@example.com", "Depunere mare", It.IsAny<string>()));
+
+            var account = new Account(10000, stubConverter, mockNotificationService.Object);
+
+            // Act
+            account.Deposit(60000); // Depunere mare -> va apela LogActivity apoi SendEmail
+
+            // Assert
+            // Daca ordinea nu e respectata, MockBehavior.Strict va arunca exceptie
+            mockNotificationService.VerifyAll(); // Verifica ca TOATE setup-urile au fost apelate
+
+            Assert.Pass("Mock a verificat ordinea corecta a apelurilor");
         }
     }
 } //verificam daca se salveaza
