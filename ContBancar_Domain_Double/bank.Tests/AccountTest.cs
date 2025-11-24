@@ -59,7 +59,7 @@ namespace bank
             var acc = new Account(500000);
             // Verificam ca soldul este exact 500.000
             Assert.That(acc.Balance, Is.EqualTo(500000), "Soldul initial trebuie sa fie 500000");
-            Assert.Pass("Testul de initializare a trecut cu succes");
+            Assert.Pass("\n✅ ✓ Testul de initializare a trecut cu succes");
         }
 
         // Test 2: Verifica ca transferul simplu functioneaza corect
@@ -78,7 +78,7 @@ namespace bank
             Assert.That(sourceAccount.Balance, Is.EqualTo(750000), "Soldul sursei trebuie sa fie 750000");
             // Verificam: destinatie 500.000 + 250.000 = 750.000
             Assert.That(destinationAccount.Balance, Is.EqualTo(750000), "Soldul destinatiei trebuie sa fie 750000");
-            Assert.Pass("Transferul de fonduri a reusit");
+            Assert.Pass("\n✅ Transferul de fonduri a reusit");
         }
 
         // ---------- TESTE DE DOMENIU SI LIMITE pentru TransferMinFunds ----------
@@ -104,7 +104,7 @@ namespace bank
             Assert.That(d.Balance, Is.EqualTo(250000), "Destinatia trebuie sa primeasca 250000");
             // Verificam ca sursa a ramas cu 250.000
             Assert.That(s.Balance, Is.EqualTo(250000), "Sursa trebuie sa aiba 250000 ramas");
-            Assert.Pass("Transferul in domeniu valid a reusit");
+            Assert.Pass("\n✅ Transferul in domeniu valid a reusit");
         }
 
         // Test 4: Limita INFERIOARA - suma minima posibila (1 leu)
@@ -117,7 +117,7 @@ namespace bank
             s.TransferMinFunds(d, 1);
             Assert.That(d.Balance, Is.EqualTo(1), "Destinatia trebuie sa primeasca 1");
             Assert.That(s.Balance, Is.EqualTo(499999), "Sursa trebuie sa aiba 499999 ramas");
-            Assert.Pass("Transferul sumei minime a reusit");
+            Assert.Pass("\n✅ Transferul sumei minime a reusit");
         }
 
         // Test 5: SUB limita inferioara - sume INVALIDE (0 sau negative)
@@ -131,7 +131,7 @@ namespace bank
             // Asteptam exceptie pentru sume <= 0
             Assert.Throws<NotEnoughFundsException>(() => s.TransferMinFunds(d, amount), 
                 "Trebuie sa arunce NotEnoughFundsException pentru sume nepozitive");
-            Assert.Pass("Exceptia pentru suma invalida a fost aruncata corect");
+            Assert.Pass("\n✅ Exceptia pentru suma invalida a fost aruncata corect");
         }
 
         // Test 6: Limita SUPERIOARA - cea mai mare suma permisa
@@ -144,7 +144,7 @@ namespace bank
             s.TransferMinFunds(d, 499998);
             Assert.That(d.Balance, Is.EqualTo(499998), "Destinatia trebuie sa primeasca 499998");
             Assert.That(s.Balance, Is.EqualTo(2), "Sursa trebuie sa aiba 2 ramas");
-            Assert.Pass("Transferul maxim valid a reusit");
+            Assert.Pass("\n✅ Transferul maxim valid a reusit");
         }
 
         // Test 7: PE limita superioara - transferul ar lasa sold exact = minim (INVALID)
@@ -156,7 +156,7 @@ namespace bank
             // Transferam 499.999 (sursa ar ramane cu 1, dar trebuie > 1, deci EXCEPTIE)
             Assert.Throws<NotEnoughFundsException>(() => s.TransferMinFunds(d, 499999), 
                 "Trebuie sa arunce NotEnoughFundsException cand soldul ramas = minBalance");
-            Assert.Pass("Exceptia la limita a fost aruncata corect");
+            Assert.Pass("\n✅ Exceptia la limita a fost aruncata corect");
         }
 
         // Test 8: PESTE limita superioara - transfer prea mare
@@ -168,7 +168,7 @@ namespace bank
             // Transferam 500.000 (sursa ar ramane cu 0, INVALID)
             Assert.Throws<NotEnoughFundsException>(() => s.TransferMinFunds(d, 500000), 
                 "Trebuie sa arunce NotEnoughFundsException cand soldul ramas < minBalance");
-            Assert.Pass("Exceptia pentru transfer prea mare a fost aruncata corect");
+            Assert.Pass("\n✅ Exceptia pentru transfer prea mare a fost aruncata corect");
         }
 
         // ---------- TESTE MAi Plauzibile ----------
@@ -184,7 +184,7 @@ namespace bank
             s.TransferMinFunds(d, 200000);
             Assert.That(d.Balance, Is.EqualTo(500000), "Destinatia trebuie sa aiba 500000 (300000 + 200000)");
             Assert.That(s.Balance, Is.EqualTo(300000), "Sursa trebuie sa aiba 300000 ramas");
-            Assert.Pass("Transferul cu sold initial la destinatie a reusit");
+            Assert.Pass("\n✅ Transferul cu sold initial la destinatie a reusit");
         }
 
         // Test 10: Teste cu MULTIPLE COMBINATII de valori (parametrizat)
@@ -205,14 +205,14 @@ namespace bank
                 s.TransferMinFunds(d, transferAmount);
                 Assert.That(d.Balance, Is.EqualTo(expectedDst), $"Destinatia trebuie sa aiba {expectedDst}");
                 Assert.That(s.Balance, Is.GreaterThan(1), "Soldul sursei trebuie sa fie mai mare decat minBalance");
-                Assert.Pass($"Transferul de {transferAmount} din {srcInit} a reusit");
+                Assert.Pass($"\n✅ Transferul de {transferAmount} din {srcInit} a reusit");
             }
             else
             {
                 // Daca e invalid, asteptam exceptie
                 Assert.Throws<NotEnoughFundsException>(() => s.TransferMinFunds(d, transferAmount),
                     "Trebuie sa arunce exceptie pentru transfer invalid");
-                Assert.Pass("Exceptia pentru transfer invalid a fost aruncata corect");
+            Assert.Pass("\n✅ Exceptia pentru transfer invalid a fost aruncata corect");
             }
         }
 
@@ -232,7 +232,7 @@ namespace bank
             float result = account.ConvertRonToEur(100);
 
             Assert.That(result, Is.EqualTo(20.0f).Within(0.01f), "100 RON trebuie sa fie 20 EUR la curs 5.0");
-            Assert.Pass("Conversia RON->EUR cu stub a reusit");
+            Assert.Pass("\n✅ Conversia RON->EUR cu stub a reusit");
         }
 
         // Test 12: Verifica conversia EUR -> RON cu curs fix (STUB)
@@ -249,7 +249,7 @@ namespace bank
             float result = account.ConvertEurToRon(20);
 
             Assert.That(result, Is.EqualTo(100.0f).Within(0.01f), "20 EUR trebuie sa fie 100 RON la curs 5.0");
-            Assert.Pass("Conversia EUR->RON cu stub a reusit");
+            Assert.Pass("\n✅ Conversia EUR->RON cu stub a reusit");
         }
 
         // Test 13: Transfer international RON -> EUR cu STUB
@@ -275,7 +275,7 @@ namespace bank
             // Verificam: destinatia a primit 100 EUR
             Assert.That(destinationAccount.Balance, Is.EqualTo(100).Within(0.01f), 
                 "Destinatia trebuie sa aiba 100 EUR");
-            Assert.Pass("Transferul RON->EUR cu stub a reusit");
+            Assert.Pass("\n✅ Transferul RON->EUR cu stub a reusit");
         }
 
         // Test 14: Transfer international EUR -> RON cu STUB
@@ -301,7 +301,7 @@ namespace bank
             // Verificam: destinatia a primit 250 RON
             Assert.That(destinationAccount.Balance, Is.EqualTo(250).Within(0.01f), 
                 "Destinatia trebuie sa aiba 250 RON");
-            Assert.Pass("Transferul EUR->RON cu stub a reusit");
+            Assert.Pass("\n✅ Transferul EUR->RON cu stub a reusit");
         }
 
         // Test 15: Teste cu CURSURI DIFERITE - demonstreaza flexibilitatea STUB-ului
@@ -322,7 +322,7 @@ namespace bank
             // Verificam rezultatul (cu toleranta de 0.1 pentru erori de rotunjire)
             Assert.That(result, Is.EqualTo(expectedEur).Within(0.1f), 
                 $"{ron} RON trebuie sa fie aproximativ {expectedEur} EUR la curs {rate}");
-            Assert.Pass($"Conversia cu curs {rate} a reusit");
+            Assert.Pass($"\n✅ Conversia cu curs {rate} a reusit");
         }
 
         // Test 16: Verifica ca nu se poate transfera o suma negativa
@@ -335,7 +335,133 @@ namespace bank
 
             Assert.Throws<ArgumentException>(() => account.ConvertRonToEur(-100), 
                 "Trebuie sa arunce ArgumentException pentru suma negativa");
-            Assert.Pass("Exceptia pentru suma negativa a fost aruncata corect");
+            Assert.Pass("\n✅ Exceptia pentru suma negativa a fost aruncata corect");
+        }
+
+        // ========== TESTE NOI PENTRU FUNCTIONALITATI ADAUGATE ==========
+
+        // Test 17: Verifica calculul dobanzii simple
+        [Test, Category("pass")]
+        [Description("Testeaza calculul dobanzii pentru un cont cu sold 10000 RON")]
+        public void CalculateInterest_ForValidPeriod_ShouldReturnCorrectAmount()
+        {
+            // Arrange
+            var account = new Account(10000); // 10,000 RON
+            // Rata dobanzii implicita: 2% pe an
+            
+            // Act - calculeaza dobanda pentru 365 zile (1 an)
+            float interest = account.CalculateInterest(365);
+            
+            // Assert
+            // 10,000 * 0.02 * (365/365) = 200 RON
+            Assert.That(interest, Is.EqualTo(200).Within(0.1f), 
+                "Dobanda pentru 1 an trebuie sa fie 200 RON (2% din 10000)");
+            
+            // Verifica dobanda pentru 6 luni (182 zile)
+            float halfYearInterest = account.CalculateInterest(182);
+            Assert.That(halfYearInterest, Is.EqualTo(100).Within(1.0f), 
+                "Dobanda pentru ~6 luni trebuie sa fie aproximativ 100 RON");
+            
+            Assert.Pass("\n✅ Calculul dobanzii functioneaza corect");
+        }
+
+        // Test 18: Verifica limita de retragere zilnica
+        [Test, Category("pass")]
+        [Description("Testeaza ca limita zilnica de retragere (10000 RON) este respectata")]
+        public void Withdraw_ExceedingDailyLimit_ShouldThrow()
+        {
+            // Arrange
+            var account = new Account(50000); // cont cu 50,000 RON
+            
+            // Act & Assert
+            // Prima retragere de 9000 RON - trebuie sa treaca
+            Assert.DoesNotThrow(() => account.Withdraw(9000),
+                "Prima retragere de 9000 RON trebuie sa treaca");
+            Assert.That(account.Balance, Is.EqualTo(41000), "Soldul trebuie sa fie 41000 dupa prima retragere");
+            
+            // A doua retragere de 1500 RON - ar depasi limita (9000 + 1500 = 10500 > 10000)
+            Assert.Throws<InvalidOperationException>(() => account.Withdraw(1500),
+                "A doua retragere trebuie sa arunce exceptie (depaseste limita zilnica)");
+            
+            // Soldul ramane neschimbat dupa exceptie
+            Assert.That(account.Balance, Is.EqualTo(41000), 
+                "Soldul nu trebuie sa se modifice dupa o retragere esuata");
+            
+            Assert.Pass("\n✅ Limita zilnica de retragere functioneaza corect");
+        }
+
+        // Test 19: Verifica istoricul tranzactiilor
+        [Test, Category("pass")]
+        [Description("Testeaza ca istoricul tranzactiilor se pastreaza corect")]
+        public void TransactionHistory_AfterMultipleOperations_ShouldContainAllTransactions()
+        {
+            // Arrange
+            var stubConverter = new CurrencyConverterStub(5.0f);
+            var account = new Account(1000, stubConverter);
+            
+            // Act - executam mai multe operatii
+            account.Deposit(500);      // Tranzactie 1: +500
+            account.Deposit(300);      // Tranzactie 2: +300
+            account.Withdraw(200);     // Tranzactie 3: -200
+            account.ApplyInterest(30); // Tranzactie 4: dobanda
+            
+            // Assert - verificam istoricul
+            var history = account.TransactionHistory;
+            Assert.That(history.Count, Is.EqualTo(4), "Istoricul trebuie sa contina 4 tranzactii");
+            
+            // Verificam tipurile tranzactiilor
+            Assert.That(history[0].Type, Is.EqualTo("Deposit"), "Prima tranzactie trebuie sa fie Deposit");
+            Assert.That(history[1].Type, Is.EqualTo("Deposit"), "A doua tranzactie trebuie sa fie Deposit");
+            Assert.That(history[2].Type, Is.EqualTo("Withdraw"), "A treia tranzactie trebuie sa fie Withdraw");
+            Assert.That(history[3].Type, Is.EqualTo("Interest"), "A patra tranzactie trebuie sa fie Interest");
+            
+            // Verificam sumele
+            Assert.That(history[0].Amount, Is.EqualTo(500), "Prima depunere trebuie sa fie 500");
+            Assert.That(history[1].Amount, Is.EqualTo(300), "A doua depunere trebuie sa fie 300");
+            Assert.That(history[2].Amount, Is.EqualTo(200), "Retragerea trebuie sa fie 200");
+            
+            // Verificam filtrarea dupa tip
+            var deposits = account.GetTransactionsByType("Deposit");
+            Assert.That(deposits.Count, Is.EqualTo(2), "Trebuie sa existe 2 depuneri");
+            
+            var withdrawals = account.GetTransactionsByType("Withdraw");
+            Assert.That(withdrawals.Count, Is.EqualTo(1), "Trebuie sa existe 1 retragere");
+            
+            Assert.Pass("\n✅ Istoricul tranzactiilor functioneaza corect");
+        }
+
+        // Test 20: Verifica generarea raportului contului
+        [Test, Category("pass")]
+        [Description("Testeaza ca raportul contului contine toate informatiile necesare")]
+        public void GenerateAccountReport_ShouldContainCompleteInformation()
+        {
+            // Arrange
+            var account = new Account(10000);
+            
+            // Facem cateva tranzactii pentru raport mai complet
+            account.Deposit(5000);  // Total depuneri: 5000
+            account.Withdraw(2000); // Total retragerile: 2000
+            account.Deposit(3000);  // Total depuneri: 8000
+            
+            // Act - generam raportul
+            string report = account.GenerateAccountReport();
+            
+            // Assert - verificam ca raportul contine informatiile cheie
+            Assert.That(report, Does.Contain("Raport Cont"), "Raportul trebuie sa contina titlul");
+            Assert.That(report, Does.Contain("Sold curent"), "Raportul trebuie sa contina soldul curent");
+            Assert.That(report, Does.Contain("16000"), "Raportul trebuie sa contina soldul final (10000+5000-2000+3000=16000)");
+            Assert.That(report, Does.Contain("Sold minim permis"), "Raportul trebuie sa contina soldul minim");
+            Assert.That(report, Does.Contain("Limita retragere zilnica"), "Raportul trebuie sa contina limita zilnica");
+            Assert.That(report, Does.Contain("Numar tranzactii: 3"), "Raportul trebuie sa contina numarul de tranzactii");
+            Assert.That(report, Does.Contain("Total depuneri: 8000"), "Raportul trebuie sa contina totalul depunerilor");
+            Assert.That(report, Does.Contain("Total retragerile: 2000"), "Raportul trebuie sa contina totalul retragerilor");
+            Assert.That(report, Does.Contain("Rata dobanda"), "Raportul trebuie sa contina rata dobanzii");
+            
+            // Verificam ca ID-ul contului apare in raport
+            Assert.That(report, Does.Contain(account.AccountId), 
+                "Raportul trebuie sa contina ID-ul contului");
+            
+            Assert.Pass("\n✅ Raportul contului este complet si corect");
         }
 
         // ========== TESTE MOCK ==========
@@ -375,7 +501,7 @@ namespace bank
                 "LogActivity trebuie apelat pentru orice depunere"
             );
 
-            Assert.Pass("Mock a verificat corect apelurile pentru depunere mare");
+            Assert.Pass("\n✅ Mock a verificat corect apelurile pentru depunere mare");
         }
 
         // Test MOCK 2: Verifica ca se trimite SMS pentru retrageri mari (> 5,000)
@@ -409,7 +535,7 @@ namespace bank
                 "LogActivity trebuie apelat pentru orice retragere"
             );
 
-            Assert.Pass("Mock a verificat corect apelurile pentru retragere mare");
+            Assert.Pass("\n✅ Mock a verificat corect apelurile pentru retragere mare");
         }
 
         // Test MOCK 3: Verifica ca LogActivity este apelat la generarea raportului
@@ -446,7 +572,7 @@ namespace bank
             Assert.That(report, Does.Contain("Raport Cont"), "Raportul trebuie sa contina titlul");
             Assert.That(report, Does.Contain("Sold curent"), "Raportul trebuie sa contina soldul");
 
-            Assert.Pass("Mock a verificat corect apelul la generarea raportului");
+            Assert.Pass("\n✅ Mock a verificat corect apelul la generarea raportului");
         }
 
         // Test MOCK 4 (BONUS): Verifica ca SendEmail NU este apelat pentru depuneri mici
@@ -477,10 +603,10 @@ namespace bank
                 "LogActivity trebuie apelat pentru orice depunere"
             );
 
-            Assert.Pass("Mock a verificat corect ca SendEmail NU a fost apelat pentru depunere mica");
+            Assert.Pass("\n✅ Mock a verificat corect ca SendEmail NU a fost apelat pentru depunere mica");
         }
 
-        // Test MOCK 5 (BONUS): Verifica ordinea apelurilor (STRICT MOCK)
+        // Test MOCK 5 Verifica ordinea apelurilor (STRICT MOCK)
         [Test, Category("pass")]
         [Description("Test MOCK: Verifica ordinea stricta a apelurilor")]
         public void Deposit_ShouldCallMethodsInCorrectOrder()
@@ -507,7 +633,7 @@ namespace bank
             // Daca ordinea nu e respectata, MockBehavior.Strict va arunca exceptie
             mockNotificationService.VerifyAll(); // Verifica ca TOATE setup-urile au fost apelate
 
-            Assert.Pass("Mock a verificat ordinea corecta a apelurilor");
+            Assert.Pass("\n✅ Mock a verificat ordinea corecta a apelurilor");
         }
     }
 } //verificam daca se salveaza
